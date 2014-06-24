@@ -5,4 +5,5 @@
 /build/cache.properties
 /build/extensionbase
 /build/requires.txt
+/tests/cfjarsoap/wsjars
 .DS_Store

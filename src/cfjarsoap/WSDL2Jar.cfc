@@ -19,7 +19,7 @@ component {
 			directoryExists(tmpsrc)?directoryDelete(tmpsrc,true):"";
 			inArgs = arrayNew(1);
 			secMan = createObject("java","java.lang.SecurityManager");
-			// cmdln opts : https:createJavaSources//wso2.org/project/wsas/java/1.1/docs/tools/cmd/code_gen.html
+			// cmdln opts : https://wso2.org/project/wsas/java/1.1/docs/tools/cmd/code_gen.html
 			// http://ws.apache.org/axis/java/user-guide.html#WSDL2JavaBuildingStubsSkeletonsAndDataTypesFromWSDL
 	//		arrayAppend(inArgs,"-p");
 	//		arrayAppend(inArgs,"org.funk.asds");
@@ -27,7 +27,9 @@ component {
 			arrayAppend(inArgs,"http://tempuri.org/=ws");
 			arrayAppend(inArgs,"-o");
 			arrayAppend(inArgs,tmpsrc);
-			arrayAppend(inArgs,"-v");
+			arrayAppend(inArgs,"-v"); // verbose
+//			arrayAppend(inArgs,"-a"); // all
+//			arrayAppend(inArgs,"-H"); // helpers
 			arrayAppend(inArgs,awsdl);
 			var result = runMainNoExit("org.apache.axis.wsdl.WSDL2Java",inArgs);
 			copyDir(tmpsrc,outputdir);
@@ -164,5 +166,25 @@ component {
 	    }
 	}
 
+	function deserializeObject(xmlInput, qName, javaType){
+		try {
+			// add the SOAP envelope since we we aren't expecting a SOAP object
+			var temp = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body>' & xmlInput & '</soapenv:Body></soapenv:Envelope>';
+			var aserver = createObject("java","org.apache.axis.server.AxisServer").init();
+			var AxisEngine = createObject("java","org.apache.axis.server.AxisEngine").init();
+			aserver.setOption(AxisEngine.PROP_DOMULTIREFS, true);
+			var msgContext = createObject("java","org.apache.axis.MessageContext").init(aserver);
+			var reader = createObject("java","java.io.StringReader").init(temp);
+			var dser = createObject("java","DeserializationContext").init(createObject("java","org.xml.sax.InputSource").init(reader),msgContext,createObject("java","org.apache.axis.Message").REQUEST);
+			dser.parse();
+			var env = dser.getEnvelope();
+			var rpcElem = env.getFirstBody();
+			var struct = rpcElem.getRealElement();
+			var result = struct.getValueAsType(qName,javaType);
+			return result;
+		} catch (Exception e) {
+			throw new Exception("Could not deserialize the XML object:" + e.getMessage());
+		}
+	}
 
 }
