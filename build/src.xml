@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<src>
+	<project>
+		<src dest="@sc.cfjarsoap.dest@" branch="@sc.cfjarsoap.branch@" 
+			remote="@sc.cfjarsoap.remote@" type="@sc.cfjarsoap.type@" uri="@sc.cfjarsoap.uri@"
+			user="@sc.cfjarsoap.user@" password="@sc.cfjarsoap.password@" />
+	</project>
+	<sources>
+	</sources>
+</src>

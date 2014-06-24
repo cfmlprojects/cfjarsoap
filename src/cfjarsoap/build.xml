@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<project name="CodegenExample" default="main" basedir=".">
+<!--http://ws.apache.org/axis/java/ant/ant.html-->
+	<path id="example.classpath">
+		<fileset dir="/workspace/ears/railo.ear/railo.war/WEB-INF/lib/">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	<target name="declare">
+		<taskdef resource="axis-tasks.properties" classpathref="example.classpath" />
+	</target>
+	<target name="main" depends="declare">
+	<diagnostics/>
+		<mkdir dir="./output"></mkdir>
+		<axis-wsdl2java output="./output" testcase="true" verbose="true" url="http://www.webservicex.net/uszip.asmx?WSDL">
+			<!--    <mapping-->
+			<!--      namespace="http://axis.apache.org/ns/interop"-->
+			<!--      package="interop" />-->
+		</axis-wsdl2java>
+		<!--  		<codegen wsdlfilename="http://www.webservicex.net/uszip.asmx?WSDL" output="./output" serverside="true" generateservicexml="true" />-->
+	</target>
+</project>
