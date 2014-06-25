@@ -1,6 +1,6 @@
 component {
 
-	wsdlsrc = getTempdirectory() & "/wsdlsrc";
+	wsdlsrc = getTempDirectory() & "/wsdlsrc";
 
 	function init()  {
 		directoryExists(wsdlsrc) ? directoryDelete(wsdlsrc,true):"";
@@ -29,7 +29,8 @@ component {
 			arrayAppend(inArgs,tmpsrc);
 			arrayAppend(inArgs,"-v"); // verbose
 //			arrayAppend(inArgs,"-a"); // all
-//			arrayAppend(inArgs,"-H"); // helpers
+			arrayAppend(inArgs,"-H"); // helpers
+//			arrayAppend(inArgs,"-w"); // wrap arrays
 			arrayAppend(inArgs,awsdl);
 			var result = runMainNoExit("org.apache.axis.wsdl.WSDL2Java",inArgs);
 			copyDir(tmpsrc,outputdir);
@@ -58,7 +59,7 @@ component {
 	}
 
 	function jar(required wsdl,required jarFile, outputdir=wsdlsrc, refresh=false)  {
-		var result = "";
+		var result = "jar exists";
 		outputdir = outputdir  & "/";
 		if(!fileExists(jarFile) || refresh) {
 			directoryExists(outputdir) ? directoryDelete(outputdir,true):"";
@@ -67,15 +68,16 @@ component {
 		  	if(!find("Generating",result)) {
 		  		throw(type="WSDL2Jar.error", message="could not create sources:" & result);
 		  	}
-		  	result = compileSources(outputdir & "src/", outputdir & "bin/");
-		  	if (NOT result.success) {
-			  throw(type="wsdl2jar.compile.error",message="cannot compile thingie:#results.errors#");
+		  	var compileResult = compileSources(outputdir & "src/", outputdir & "bin/");
+		  	if (NOT compileResult.success) {
+			  throw(type="wsdl2jar.compile.error",message="cannot compile thingie:#compileResult.errors#");
 			}
 			if (fileExists(jarFile)) {
 			  	fileDelete(jarFile);
 			}
 		  	createJar(outputdir & "bin/",jarFile);
 		}
+	  	return result;
 	}
 
 	function jarAndLoad(required wsdl ,required jarFile ,outputdir="" ,refresh=false)  {
