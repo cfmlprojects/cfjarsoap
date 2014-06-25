@@ -38,12 +38,12 @@
 	<cfif right(arguments.path,1) neq "/">
 		<cfset arguments.path = arguments.path & "/">
 	</cfif>
-	<cfdirectory action="list" directory="#arguments.path#" filter="*.jar" name="qJars">	
+	<cfdirectory action="list" directory="#arguments.path#" filter="*.jar" name="qJars">
 	<cfloop query="qJars">
 		<cfscript>
 			ArrayAppend(arguments.library, arguments.path & name);
 		</cfscript>
-	</cfloop>	
+	</cfloop>
 	<cfscript>
 		ArrayAppend(arguments.library, arguments.path);
 		return arguments.library;
@@ -85,10 +85,9 @@
 			catalina = replacenocase(system.getProperty("catalina.ext.dirs"),'../lib','lib');
 			jbosslibs = replacenocase(system.getProperty("jboss.server.lib.url"),'../lib','lib');
 			if (arguments.classpath eq "") {
-				webinflibs = "/Users/denny/programs/jboss-5.0.0.CR2/server/default/deploy/ralio.ear/railo.war/WEB-INF/lib/";
-				
+				webinflibs = "";
 				//classpath = """" & system.getProperty("java.class.path") & classdelim & system.getProperty("java.library.path") & classdelim & arrayToList(variables._loader.queryJars(),classdelim) &"""" ;
-				classpath = """" & system.getProperty("java.class.path") & classdelim & syslibpath & classdelim & bootpath 
+				classpath = """" & system.getProperty("java.class.path") & classdelim & syslibpath & classdelim & bootpath
 				& classdelim & catalina &
 				classdelim & jbosslibs &
 				classdelim & webinflibs &
@@ -108,7 +107,7 @@
 				classpath = arrayToList(jarsArray,classdelim);
 			}
 			didCompile["outFileDir"] = arguments.outFileDir;
-			didCompile["command"] = "#arguments.options# -nowarn -classpath #classpath# #arguments.srcdir# -d #arguments.outFileDir#";
+			didCompile["command"] = '#arguments.options# -nowarn -classpath "#classpath#" "#arguments.srcdir#" -d "#arguments.outFileDir#"';
 			//didCompile["success"] = compiler.compile("-nowarn -sourcepath #sourcepath# -classpath #classpath# #arguments.javaFile# -d #arguments.outFileDir#",outWriter,errWriter);
 			didCompile["success"] = compiler.compile(didCompile["command"],outWriter,errWriter);
 			didCompile["errors"] = replace(errS.toString(),chr(13)&chr(10),"<br>","all");
