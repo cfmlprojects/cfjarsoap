@@ -28,11 +28,12 @@ component {
 			arrayAppend(inArgs,"-o");
 			arrayAppend(inArgs,tmpsrc);
 			arrayAppend(inArgs,"-v"); // verbose
-//			arrayAppend(inArgs,"-a"); // all
+			arrayAppend(inArgs,"-a"); // all
 			arrayAppend(inArgs,"-H"); // helpers
 //			arrayAppend(inArgs,"-w"); // wrap arrays
 			arrayAppend(inArgs,awsdl);
-			var result = runMainNoExit("org.apache.axis.wsdl.WSDL2Java",inArgs);
+			result = "running: org.apache.axis.wsdl.WSDL2Java #toString(inArgs)#";
+			var result &= runMainNoExit("org.apache.axis.wsdl.WSDL2Java",inArgs);
 			copyDir(tmpsrc,outputdir);
 		}
 		directoryExists(tmpsrc)?directoryDelete(tmpsrc,true):"";
@@ -41,7 +42,10 @@ component {
 
 	function compileSources(required srcdir, required bindir)  {
 		var compiler = createObject("component","core.Compiler");
-		var didcompile = compiler.compile(arguments.srcdir,expandPath("/WEB-INF/lib/"),arguments.bindir);
+		var axis = createObject("java", "org.apache.axis.client.Service");
+		var libdir = getDirectoryFromPath(axis.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+
+		var didcompile = compiler.compile(arguments.srcdir,libdir,arguments.bindir);
 		return didcompile;
 	}
 

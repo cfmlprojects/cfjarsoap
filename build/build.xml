@@ -1,11 +1,37 @@
-<project name="distro.build" default="build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+<project name="distro.build" default="build" basedir="./"
+	xmlns:antcontrib="antlib:net.sf.antcontrib">
 
-	<loadproperties srcfile="build.properties"/>
-	<import file="${cfdistro.build.file}"/>
+	<loadproperties srcfile="build.properties" />
+	<import file="${cfdistro.build.file}" />
 
 	<target name="build" depends="cfdistro.build">
 		<dependency groupId="org.mxunit" artifactId="core"
-                 version="${mxunit.version}" mapping="/mxunit" />
-	</target>	
-	
+			version="${mxunit.version}" mapping="/mxunit" />
+	</target>
+
+	<target name="get.deps">
+		<property name="cfjr.dep.dir" value="${src.dir}/cfjarsoap/cxf/lib/jars" />
+		<property name="mvn.type" value="snapshot" />
+<!--
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-rt-bindings-soap" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-rt-databinding-jaxb" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-rt-frontend-jaxws" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-rt-wsdl" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false">
+			<exclusions>
+				<exclusion groupId="bouncycastle" artifactId="bctsp-jdk14" />
+			</exclusions>
+		</dependency>
+
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-rt-frontend-jaxws" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-tools-wsdlto-databinding-jaxb" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+ 		<dependency groupId="org.apache.cxf" artifactId="cxf-tools-wsdlto-frontend-jaxws" version="3.0.0" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+
+35Mvs45
+ 		<dependency groupId="org.apache.cxf" artifactId="apache-cxf" version="3.0.0" dest="${cfjr.dep.dir}" type="pom" unzip="false"/>
+ -->
+		<dependency groupId="org.springframework" artifactId="spring-context" version="3.2.6.RELEASE" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+		<dependency groupId="org.apache.cxf" artifactId="cxf-bundle" version="3.0.0-milestone2" dest="${cfjr.dep.dir}" type="jar" unzip="false"/>
+	</target>
+
+
 </project>

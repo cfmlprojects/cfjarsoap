@@ -57,4 +57,16 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="testCreateJar2">
+		<cfscript>
+			// first, a normal call
+			var ws = createObject("webservice","https://disco.crm.dynamics.com/XRMServices/2011/Discovery.svc?wsdl");
+			request.debug(ws);
+
+			// the same call using generated stuff
+			wsdl2jar.jar("https://disco.crm.dynamics.com/XRMServices/2011/Discovery.svc?wsdl",jardir & "/disco.jar");
+ 			var classloader = wsdl2jar.getClassLoader(jardir);
+		</cfscript>
+	</cffunction>
+
    </cfcomponent>
