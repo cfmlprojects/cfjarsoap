@@ -1,38 +1,136 @@
 component {
 
-	cl = new lib.LibraryLoader(getDirectoryFromPath(getMetaData(this).path) & "lib/jars/").init();
-//    createObject("java","java.lang.Thread").currentThread().setContextClassLoader(cl.getLoader().getURLClassLoader())
-	java = {
-		Thread : cl.create("java.lang.Thread")
-		, QName : cl.create("javax.xml.namespace.QName")
-		, JaxWsDynamicClientFactory : cl.create("org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory")
-		, WSDLToJava : cl.create("org.apache.cxf.tools.wsdlto.WSDLToJava")
-		, ToolContext : cl.create("org.apache.cxf.tools.common.ToolContext")
-		, Client : cl.create("org.apache.cxf.endpoint.Client")
-		, URL : cl.create("java.net.URL")
-		, File : cl.create("java.io.File")
-		, SpringBusFactory : cl.create("org.apache.cxf.bus.spring.SpringBusFactory")
-		, BusFactory : cl.create("org.apache.cxf.BusFactory")
-	}
-	//org.apache.axis.wsdl.toJava.Emitter
-	cTL = java.Thread.currentThread().getContextClassLoader();
-
-	function init(wsdl,springContext="") {
-		if(!isNull(wsdl))
-		 	setWSDLURL(wsdl);
-		springContextLocation = springContext;
+	function init(wsjars= getTempdirectory() & "/wsjars", srcdir=getTempDirectory() & "/wsdlsrc")  {
+		wsdlsrc = srcdir;
+		libdir = getDirectoryFromPath(getMetaData(this).path) & "lib/jars/";
+		cl = new lib.LibraryLoader("#libdir#,#wsjars#/").init();
+		java = {
+			Thread : cl.create("java.lang.Thread")
+			, QName : cl.create("javax.xml.namespace.QName")
+			, JaxWsDynamicClientFactory : cl.create("org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory")
+			, WSDLToJava : cl.create("org.apache.cxf.tools.wsdlto.WSDLToJava")
+			, ToolContext : cl.create("org.apache.cxf.tools.common.ToolContext")
+			, Client : cl.create("org.apache.cxf.endpoint.Client")
+			, URL : cl.create("java.net.URL")
+			, File : cl.create("java.io.File")
+			, SpringBusFactory : cl.create("org.apache.cxf.bus.spring.SpringBusFactory")
+			, BusFactory : cl.create("org.apache.cxf.BusFactory")
+		}
+		WSDLs = {};
+		jardir = wsjars;
 		return this;
 	}
 
-	function setWSDLURL(required wsdl) {
-		wsdlURL = wsdl;
+	function _addWSDL(required wsdl, package="", jar="", srcdir=wsdlsrc, addJavaSrcDir="", bindings="", boolean refresh=false)  {
+		jar = jar == "" ? jardir & "/" & java.URL.init(wsdl).getHost() & ".jar" : jar;
+		var wssrc = srcdir & "/" & listLast(jar,"\/").replace(".jar","");
+		var wsdlInfo = {url:wsdl,package:package,jar:jar,srcdir:wssrc,addJavaSrcDir:addJavaSrcDir,bindings:bindings,wsdlToJavaResult:"",compileResult:"",compiled:false};
+		WSDLs[wsdl] = wsdlInfo;
 	}
+
+	function setSpringApplicationContext(required context)  {
+		springContextLocation = context;
+		var springFactory = java.SpringBusFactory.init();
+		bus = springFactory.createBus(java.File.init(springContextLocation));
+		bus.getProperties().put("soap.no.validate.parts", true);
+		var pClass = cl.getLoader().getURLClassloader().loadClass("org.apache.cxf.ws.policy.PolicyInterceptorProviderRegistry");
+		var pRegistry = bus.getExtension(pClass);
+		pRegistry.register(cl.create("xrm.XRMAuthPolicyProvider").init());
+
+		java.BusFactory.setDefaultBus(bus);
+
+	}
+
+	function compileSources(required srcdir, required bindir)  {
+		var compiler = createObject("component","cfjarsoap.core.Compiler");
+		var cp = arrayToList(directoryList(libdir,true,"*.jar"),":");
+		var didcompile = compiler.compile(arguments.srcdir,arguments.bindir,cp);
+		return didcompile;
+	}
+
+	function jarWSDLs(refresh = false)  {
+		var bindir = getTempdirectory() & "/wsbin";
+		if(directoryExists(bindir)) directoryDelete(bindir,true);
+		if(!directoryExists(jardir)) directoryCreate(jardir);
+		for(var wsInfo in WSDLs) {
+			wsInfo = WSDLs[wsInfo];
+			if(refresh) {
+				if(directoryExists(wsInfo.srcdir)) directoryDelete(wsInfo.srcdir,true);
+			}
+		}
+		for(var wsInfo in WSDLs) {
+			wsInfo = WSDLs[wsInfo];
+			if(!fileExists(wsInfo.jar) || refresh) {
+				if(!directoryExists(wsInfo.srcdir)) {
+				  	directoryCreate(wsInfo.srcdir);
+				}
+				if(wsInfo.addJavaSrcDir != ""){
+					directoryCopy(wsInfo.addJavaSrcDir, wsInfo.srcdir,true);
+				}
+				var wsdlArgs = ['-d',wsInfo.srcdir,'-client','-verbose','-validate'];
+				if(wsInfo.bindings != "") {
+					arrayAppend(wsdlArgs,"-b");
+					arrayAppend(wsdlArgs,wsInfo.bindings);
+				}
+				if(wsInfo.package != "") {
+					arrayAppend(wsdlArgs,"-p");
+					arrayAppend(wsdlArgs,wsInfo.package);
+				}
+			  	wsdlInfo.wsdlToJavaResult = _wsdlTojava(wsdl=wsInfo.url,args=wsdlArgs);
+			  	wsInfo.compileResult = compileSources(wsInfo.srcdir, bindir & "/" & listLast(wsInfo.jar,"\/").replace(".jar",""));
+			  	if(fileExists(wsInfo.jar)) fileDelete(wsInfo.jar);
+			  	wsInfo.compiled = true;
+			}
+		}
+		for(var wsInfo in WSDLs) {
+			wsInfo = WSDLs[wsInfo];
+		  	var jarFile = wsInfo.jar;
+			if (!fileExists(jarFile)) {
+		  		createJar(bindir & "/" & listLast(wsInfo.jar,"\/").replace(".jar",""),jarFile);
+			}
+		}
+		return true;
+	}
+
+	function createJar(required bindir ,required jarfile)  {
+		var jarer = createObject("component","cfjarsoap.core.JarUtils");
+		var srcPath = arguments.bindir;
+		var destFile = arguments.jarfile;
+		jarer.createJarFile(srcPath,destFile,"");
+	}
+
+	function getClassLoader(refresh=false)  {
+		if(isNull(checkedJars)) {
+			checkedJars = jarWSDLs(refresh=refresh);
+		}
+		if(refresh){
+			cl = new lib.LibraryLoader("#libdir#,#jardir#/",refresh).init();
+		}
+		return cl;
+	}
+
+	function _jar(required wsdl,required jarFile, outputdir=wsdlsrc, refresh=false)  {
+		var result = "jar exists";
+		outputdir = outputdir  & "/";
+		if(!fileExists(jarFile) || refresh) {
+			directoryExists(outputdir) ? directoryDelete(outputdir,true):"";
+			directoryCreate(outputdir);
+		  	var result = _wsdlTojava(wsdl=wsdl,args=['-d',outputdir & "src",'-client','-verbose','-validate']);
+		  	var result &= compileSources(outputdir & "src/", outputdir & "bin/");
+		  	if (find("ERROR",result)) {
+			  throw(type="wsdl2jar.compile.error",message="cannot compile thingie:#result#");
+			}
+			if (fileExists(jarFile)) {
+			  	fileDelete(jarFile);
+			}
+		  	createJar(outputdir & "bin/",jarFile);
+		}
+	  	return result;
+	}
+
 
 	function getClient() {
 		if(springContextLocation !="") {
-			var springFactory =java.SpringBusFactory.init();
-			var bus = springFactory.createBus(java.File.init(springContextLocation));
-			java.BusFactory.setDefaultBus(bus);
 			var factory = java.JaxWsDynamicClientFactory.newInstance(bus);
 		} else {
 	       	var factory = java.JaxWsDynamicClientFactory.newInstance();
@@ -50,8 +148,6 @@ component {
 */
 
 	}
-
-
 
 	function _getServices() {
 		if(isNull(services)) {
@@ -100,12 +196,16 @@ component {
 		return struct;
 	}
 
-	function _wsdl2java(args=['-d', getTempDirectory(),'-client','-verbose','-validate']) {
-		arrayAppend(args,wsdlURL);
-		var wsdl2java = java.WSDLToJava.init(args);
+	function _wsdlTojava(required wsdl, args=['-d', getTempDirectory(),'-client','-verbose','-validate']) {
+		arrayAppend(args,wsdl);
 		var toolContext = java.ToolContext.init();
-		request.debug(args);
-		request.debug(wsdl2java.run(toolContext));
+		var wsdl2java = java.WSDLToJava.init(args);
+		try {
+			wsdl2java.run(toolContext);
+		} catch (any e) {
+			throw(type="wsdlToJava.error",message="Could not gen: #wsdl# #args.toString()#");
+		}
+		return "wsdlToJava: " & args.toString();
 	}
 
 	function _create(required className) {
@@ -114,16 +214,7 @@ component {
 	}
 
     function onMissingMethod(missingMethodName,missingMethodArguments){
-    	callMethod("_getServices",[]);
-    	request.debug(arguments);
-    	if(missingMethodName == "create"){
-    		return callMethod("_create",missingMethodArguments);
-    	}
-    	else if(structKeyExists(services,missingMethodName)) {
-    		return callMethod("runOperation",[missingMethodName,missingMethodArguments]);
-    	} else {
-	        return callMethod("_"&missingMethodName,missingMethodArguments);
-    	}
+        return callMethod("_"&missingMethodName,missingMethodArguments);
     }
 
 

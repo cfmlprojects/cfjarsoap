@@ -6,4 +6,5 @@
 /build/extensionbase
 /build/requires.txt
 /tests/cfjarsoap/wsjars
+/src/cfjarsoap/cxf/lib/jars
 .DS_Store

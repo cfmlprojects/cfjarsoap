@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jaxws="http://cxf.apache.org/jaxws" 
+    xmlns:context="http://www.springframework.org/schema/context"   
+	xmlns:cxf="http://cxf.apache.org/core"
+	xmlns:policy="http://cxf.apache.org/policy"
+	xmlns:security="http://cxf.apache.org/configuration/security"
+	xmlns:http="http://cxf.apache.org/transports/http/configuration"
+    xsi:schemaLocation="
+    http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context     http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+    http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+    http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
+
+  <jaxws:client name="{http://schemas.microsoft.com/xrm/2011/Contracts}CustomBinding_IOrganizationService" createdFromAPI="true">
+    <jaxws:properties>
+      <entry key="ws-security.sts.client"  value-ref="crm.sts-client" />
+    </jaxws:properties>
+  </jaxws:client>
+  
+  <bean name="crm.sts-client"  class="org.apache.cxf.ws.security.trust.STSClient">
+    <constructor-arg ref="cxf"/>
+    <property name="wsdlLocation" value="https://adfs.example.com/adfs/services/trust/mex"/>
+    <property name="serviceName"  value="{http://schemas.microsoft.com/ws/2008/06/identity/securitytokenservice}SecurityTokenService"/>
+    <property name="endpointName"  value="{http://schemas.microsoft.com/ws/2008/06/identity/securitytokenservice}UserNameWSTrustBinding_IWSTrust13Async"/>
+    <property name="properties">
+      <map>
+        <entry key="ws-security.username" value="user1"/>
+        <entry key="ws-security.callback-handler" value="xrm.HardcodedPassword"/>
+      </map>
+    </property>
+  </bean>
+  
+  <!-- Skip Microsoft extensions -->
+  <bean class="org.apache.cxf.ws.policy.IgnorablePolicyInterceptorProvider">
+    <constructor-arg>
+      <list>
+        <bean class="javax.xml.namespace.QName">
+          <constructor-arg value="http://schemas.microsoft.com/xrm/2011/Contracts/Services"/>
+          <constructor-arg value="AuthenticationPolicy"/>
+        </bean>
+      </list>
+    </constructor-arg>
+  </bean>
+  
+  <cxf:bus>
+    <cxf:features>
+    <!-- Enables policy support: -->
+    <policy:policies/>
+    <!-- Enables logging of SOAP messages. -->
+    <cxf:logging/>
+    </cxf:features>
+  </cxf:bus>
+
+</beans>

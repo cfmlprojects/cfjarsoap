@@ -86,9 +86,10 @@
 
 	<cffunction name="init" hint="Constructor" access="public" returntype="any" output="false">
 		<cfargument name="pathlist" default="">
+		<cfargument name="refresh" default="false" hint="causes memory leak if true, only for development">
 		<cfscript>
 			var key = instance.static.uuid;
-			if (NOT structKeyExists(server,key)) {
+			if (NOT structKeyExists(server,key) || refresh) {
 				var loadPaths = ArrayNew(1);
 				var paths = arguments.pathlist;
 				if(paths eq "") {
