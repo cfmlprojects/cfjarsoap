@@ -50,7 +50,7 @@ component {
 	}
 
 	function createJar(required bindir ,required jarfile)  {
-		var jarer = createObject("component","core.JarUtils");
+		var jarer = createObject("component","core.JarUtil");
 		var srcPath = arguments.bindir;
 		var destFile = arguments.jarfile;
 		jarer.createJarFile(srcPath,destFile,"");
