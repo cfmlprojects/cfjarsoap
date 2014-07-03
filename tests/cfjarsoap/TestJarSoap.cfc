@@ -5,14 +5,13 @@
 	<cfset jardir = getDirectoryFromPath(getMetadata(this).path) & "/wsjars" />
 
 	<cffunction name="beforeTests" returntype="void" access="public">
-		<cfset variables.jarSoap = new cfjarsoap.jarSoap(jardir) />
 	</cffunction>
 
 	<cffunction name="setUp" returntype="void" access="public">
-		<cfset variables.jarSoap = new cfjarsoap.jarSoap(jardir) />
 	</cffunction>
 
 	<cffunction name="testCreateJar">
+		<cfset variables.jarSoap = new cfjarsoap.jarSoap("axis2",jardir) />
 		<cfscript>
 			// first, a normal call
 			var ws = createObject("webservice","http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl");

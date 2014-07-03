@@ -7,4 +7,11 @@
 /build/requires.txt
 /tests/cfjarsoap/wsjars
 /src/cfjarsoap/cxf/lib/jars
+/src/cfjarsoap/dependency/aether/
+/src/cfjarsoap/dependency/javatools/
+/src/cfjarsoap/dependency/axis*
+/src/cfjarsoap/dependency/cxf*
+/tests/repo/
+/tests/wsjars/
+/tests/wssrc/
 .DS_Store
