@@ -39,12 +39,12 @@ component {
 
 	function jarWSDLs(refresh = false)  {
 		var bindir = getTempdirectory() & "/wsbin";
-		if(directoryExists(bindir)) directoryDelete(bindir,true);
+		if(directoryExists(bindir)) lazyDirectoryDelete(bindir,true);
 		if(!directoryExists(jardir)) directoryCreate(jardir);
 		for(var wsInfo in WSDLs) {
 			wsInfo = WSDLs[wsInfo];
 			if(refresh) {
-				if(directoryExists(wsInfo.srcdir)) directoryDelete(wsInfo.srcdir,true);
+				if(directoryExists(wsInfo.srcdir)) lazyDirectoryDelete(wsInfo.srcdir,true);
 			}
 		}
 		for(var wsInfo in WSDLs) {
@@ -98,7 +98,7 @@ component {
 		var result = "jar exists";
 		outputdir = outputdir  & "/";
 		if(!fileExists(jarFile) || refresh) {
-			directoryExists(outputdir) ? directoryDelete(outputdir,true):"";
+			directoryExists(outputdir) ? lazyDirectoryDelete(outputdir,true):"";
 			directoryCreate(outputdir);
 		  	var result = _wsdlTojava(wsdl=wsdl,args=['-d',outputdir & "src",'-client','-verbose','-validate']);
 		  	var result &= compileSources(outputdir & "src/", outputdir & "bin/");
@@ -219,6 +219,16 @@ component {
 
     function onMissingMethod(missingMethodName,missingMethodArguments){
         return callMethod("_"&missingMethodName,missingMethodArguments);
+    }
+
+    function lazyDirectoryDelete(directory,recurse=true){
+    	if(!directoryExists(directory))
+    		return;
+    	try {
+    		directoryDelete(directory,recurse);
+    	} catch (any e) {
+    		directoryRename(directory,getTempDirectory() & "/#createUUID()#");
+    	}
     }
 
 
