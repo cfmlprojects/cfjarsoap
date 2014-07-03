@@ -12,6 +12,7 @@ component {
 			, CommandLineOptionParser : cl.create("org.apache.axis2.util.CommandLineOptionParser")
 			, URL : cl.create("java.net.URL")
 			, File : cl.create("java.io.File")
+			, System : cl.create("java.lang.System")
 			, HashMap : cl.create("java.util.HashMap")
 		}
 		WSDLs = {};
@@ -28,7 +29,7 @@ component {
 
 	function compileSources(required srcdir, required bindir)  {
 		var compiler = createObject("component","cfjarsoap.dependency.javatools.Compiler");
-		var cp = arrayToList(directoryList(expandPath("/cfjarsoap/dependency/axis2"),true,"*.jar"),":");
+		var cp = arrayToList(directoryList(expandPath("/cfjarsoap/dependency/axis2"),true,"*.jar"), java.System.getProperty("path.separator"));
 		var didcompile = compiler.compile(arguments.srcdir,arguments.bindir,cp);
 		if(find("ERROR ",didcompile)) {
 			throw(type="axis2.compile.error", message=didcompile);
