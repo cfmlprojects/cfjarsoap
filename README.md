@@ -9,17 +9,27 @@ Copy ./cfjarsoap to your webroot, copy tests/test.cfc there too, then call test.
 
 ## Usage
 generally:
+`
+var thisdir = getDirectoryFromPath(getTemplatePath());
+var jardir = thisdir & "/wsjars";
+var srcdir = thisdir & "/wssrc";
 
-wsdl = "http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl";
 var cfsoap = new cfjarsoap.JarSoap("axis2",jardir,srcdir);
-cfsoap.addWSDL(wsdl=wsdl);
-var c = cfsoap.getClassLoader(true);
-dump(cfsoap.getServices());
-cb = c.create("com.cdyne.ws.weatherws.WeatherStub");
+
+var wsdl = "http://my.cool.host/myawesomeservice.asmx?wsdl";
+
+cfsoap.addWSDL(wsdl=wsdl);  // just adds the WSDL, no compilation at this point
+
+var c = cfsoap.getClassLoader(true);  // compiles/loads WSDLs
+
+dump(cfsoap.getServices()); // tries to list available services
+cb = c.create("com.cdyne.ws.weatherws.WeatherStub"); // javaloader to create service
 dump(cb);
 dump(cb.getCityWeatherByZIP("87104"));
 dump(cfsoap.pojo2struct(cb.getCityWeatherByZIP("87104")));
-dump(cfsoap.getCityWeatherByZIP(87104));
+
+dump(cfsoap.getCityWeatherByZIP(87104)); // or try using OnMissingMethod
+`
 
 If you've generated the jars once, do cfsoap.getClassLoader(false) to prevent memory leaks.
 Setting it to true forces the classes to be regenerated and a new classloader.  To be utterly
