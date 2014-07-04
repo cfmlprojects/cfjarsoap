@@ -6,6 +6,7 @@
 /build/extensionbase
 /build/requires.txt
 /tests/cfjarsoap/wsjars
+/tests/cfjarsoap/wssrc
 /src/cfjarsoap/cxf/lib/jars
 /src/cfjarsoap/dependency/aether/
 /src/cfjarsoap/dependency/javatools/
