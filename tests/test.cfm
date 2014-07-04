@@ -11,7 +11,7 @@
 			wsdl = "http://wsf.cdyne.com/WeatherWS/Weather.asmx?wsdl";
 			var cfsoap = new cfjarsoap.JarSoap("axis2",jardir,srcdir);
 			cfsoap.addWSDL(wsdl=wsdl);
-			var c = cfsoap.getClassLoader(false);
+			var c = cfsoap.getClassLoader(true);
 			dump(cfsoap.getServices());
 			cb = c.create("com.cdyne.ws.weatherws.WeatherStub");
 			dump(cb);
