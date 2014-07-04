@@ -1,6 +1,6 @@
 component {
 
-	function init(wsengine="axis2", wsjars= getTempdirectory() & "/wsjars", srcdir=getTempDirectory() & "/wsdlsrc")  {
+	function init(wsengine="axis2", wsjars= getTempdirectory() & "/wsjars/", srcdir=getTempDirectory() & "/wsdlsrc")  {
 		WSDLs = {};
 		jardir = wsjars;
 		wsdlsrc = srcdir;
@@ -27,7 +27,7 @@ component {
 				wsengineObj = createObject("cfjarsoap.cxf.CXF")
 			break;
 		}
-		javaloader = new cfjarsoap.dependency.javatools.LibraryLoader(depdir&","&jardir&"/");
+		javaloader = new cfjarsoap.dependency.javatools.LibraryLoader(id="cfjarsoap-classloader", pathlist="#depdir#,#jardir#");
 		wsengineObj.init(javaloader,jardir,srcdir);
 		return this;
 	}
@@ -44,10 +44,7 @@ component {
 	}
 
 	function getClassLoader(reload=false)  {
-		if(isNull(classLoader)) {
-			classLoader = wsengineObj.getClassloader(reload);
-		}
-		return classLoader;
+		return wsengineObj.getClassloader(reload);
 	}
 
 	function getWSEngine()  {

@@ -9,6 +9,15 @@
 			version="${mxunit.version}" mapping="/mxunit" />
 	</target>
 
+	<target name="clean">
+		<delete dir="${temp.dir}" />
+		<delete dir="${tests.dir}/repo" />
+		<delete dir="${src.dir}/cfjarsoap/dependency/aether" />
+		<delete dir="${src.dir}/cfjarsoap/dependency/axis2" />
+		<delete dir="${src.dir}/cfjarsoap/dependency/javatools" />
+		<delete dir="${src.dir}/cfjarsoap/dependency/cxf" />
+	</target>
+
 	<target name="get.deps">
 		<property name="cfjr.dep.dir" value="${src.dir}/cfjarsoap/cxf/lib/jars" />
 		<property name="mvn.type" value="snapshot" />

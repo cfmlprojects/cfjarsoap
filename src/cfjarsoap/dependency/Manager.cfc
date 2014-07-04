@@ -14,7 +14,7 @@ component {
 		rawMaterialize("org.cfmlprojects:cfaether:zip:1.0.0","#thisdir#/aether",true);
 		rawMaterialize("org.cfmlprojects:cfdependency:jar:1.0.0","#thisdir#/aether/lib");
 		rawMaterialize("cfml:javatools:zip:1.0.0","#thisdir#/javatools",true);
-		javaloader = new javatools.LibraryLoader(thisdir & "/aether/lib/")
+		javaloader = new javatools.LibraryLoader(pathlist=thisdir & "/aether/lib/", id="aether-classloader")
 		aether = new aether.Aether(localPath=localPath, javaloader=javaloader);
 	}
 /*

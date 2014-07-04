@@ -38,6 +38,7 @@ component {
 	}
 
 	function jarWSDLs(refresh = false)  {
+		var shouldReload = false;
 		var bindir = getTempdirectory() & "/wsbin";
 		if(directoryExists(bindir)) lazyDirectoryDelete(bindir,true);
 		if(!directoryExists(jardir)) directoryCreate(jardir);
@@ -56,25 +57,40 @@ component {
 				if(wsInfo.addJavaSrcDir != ""){
 					directoryCopy(wsInfo.addJavaSrcDir, wsInfo.srcdir,true);
 				}
-				var wsdlArgs = ['-o',wsInfo.srcdir,'-d', 'adb', '-s','-u','-uw'];
+				var wsdlArgs = ['-o',wsInfo.srcdir,'-d', 'adb', '-s','-u','-uw','-v'];
 				if(wsInfo.package != "") {
 					arrayAppend(wsdlArgs,"-p");
 					arrayAppend(wsdlArgs,wsInfo.package);
 				}
 			  	wsdlInfo.wsdlToJavaResult = _wsdlTojava(wsdl=wsInfo.url,args=wsdlArgs);
+			  	fixMSNamespace(wsInfo.srcdir);
 			  	wsInfo.compileResult = compileSources(wsInfo.srcdir, bindir & "/" & listLast(wsInfo.jar,"\/").replace(".jar",""));
 			  	if(fileExists(wsInfo.jar)) fileDelete(wsInfo.jar);
 			  	wsInfo.compiled = true;
+			  	shouldReload = true;
 			}
 		}
 		for(var wsInfo in WSDLs) {
 			wsInfo = WSDLs[wsInfo];
-		  	var jarFile = wsInfo.jar;
-			if (!fileExists(jarFile)) {
-		  		createJar(bindir & "/" & listLast(wsInfo.jar,"\/").replace(".jar",""),jarFile);
+			if (!fileExists(wsInfo.jar) || refresh) {
+		  		createJar(bindir & "/" & listLast(wsInfo.jar,"\/").replace(".jar",""),wsInfo.jar);
+			  	shouldReload = true;
 			}
 		}
-		return true;
+		return shouldReload;
+	}
+
+	function fixMSNamespace(required srcdir)  {
+		// some MS .net webservices have this thing...
+		var files = directoryList(srcdir,true,"*.java");
+		for (var file in files) {
+			if(file.endsWith(".java")) {
+				var in = fileRead(file);
+				var out = replace(in,"wsx:MetadataSection","MetadataSection","all");
+				out = replace(out,"wsx:MetadataReference","MetadataReference","all");
+				fileWrite(file,out);
+			}
+		}
 	}
 
 	function createJar(required bindir ,required jarfile)  {
@@ -84,12 +100,23 @@ component {
 		jarer.createJarFile(srcPath,destFile,"");
 	}
 
-	function getClassLoader(refresh=false)  {
-		if(isNull(checkedJars)) {
-			checkedJars = jarWSDLs(refresh=refresh);
-		}
-		if(refresh){
-			cl = cl.init(expandPath("/cfjarsoap/dependencies/axis2") & ",#jardir#/",true,refresh);
+	function getClassLoader(force=false)  {
+		if(force || isNull(classloader)) {
+			if(isNull(needsReload)) {
+				needsReload = jarWSDLs(force);
+			}
+			if(force || needsReload){
+				lock name="switchnloader" timeout="20" {
+					if(force || needsReload){
+						var depsdir = expandPath("/cfjarsoap/dependency/axis2");
+						var newCL = cl.init(id="cfjarsoap-classloader", pathlist="#depsdir#,#jardir#", force=true);
+						cl = javacast("null","");
+						//TODO: cleanup somehow
+						cl = newCL;
+					}
+				}
+			}
+			classloader = cl;
 		}
 		return cl;
 	}
