@@ -9,7 +9,8 @@ Copy ./cfjarsoap to your webroot, copy tests/test.cfc there too, then call test.
 
 ## Usage
 generally:
-`
+
+```
 var thisdir = getDirectoryFromPath(getTemplatePath());
 var jardir = thisdir & "/wsjars";
 var srcdir = thisdir & "/wssrc";
@@ -29,7 +30,7 @@ dump(cb.getCityWeatherByZIP("87104"));
 dump(cfsoap.pojo2struct(cb.getCityWeatherByZIP("87104")));
 
 dump(cfsoap.getCityWeatherByZIP(87104)); // or try using OnMissingMethod
-`
+```
 
 If you've generated the jars once, do cfsoap.getClassLoader(false) to prevent memory leaks.
 Setting it to true forces the classes to be regenerated and a new classloader.  To be utterly
