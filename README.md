@@ -10,7 +10,7 @@ Copy ./cfjarsoap to your webroot, copy tests/test.cfc there too, then call test.
 ## Usage
 generally:
 
-```
+```javascript
 var thisdir = getDirectoryFromPath(getTemplatePath());
 var jardir = thisdir & "/wsjars";
 var srcdir = thisdir & "/wssrc";
@@ -45,11 +45,21 @@ downloaded fresh, delete the "repo" dir (theoretically in ./tests) and sub-direc
 ## Building/Development
 
 Theoretically, downlaod the zipball, and run:
+```
 ./cfjarsoap build
+```
 then
+```
 ./cfjarsoap runwar.start.fg
-then browse to:
+```
+and browse to:
+```
 http://127.0.0.1:8088/tests/test.cfm
+```
+use ctrl-c to stop the server.
 
-To clean all downloaded dependencies:
+
+To clean all downloaded dependencies, run:
+```
 ./cfjarsoap clean 
+```
