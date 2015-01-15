@@ -1,6 +1,12 @@
 component {
 
-	function init(wsengine="axis2", wsjars= getTempdirectory() & "/wsjars/", srcdir=getTempDirectory() & "/wsdlsrc")  {
+	/**
+	 * constructor
+	 * @wsengine.hint webservice engine, one of axis,axis2 or cxf, defaults to axis2
+	 * @wsjars.hint where to store the generated jars
+	 * @srcdir.hint where to store the generated source, defaults to getTempDirectory()
+	 **/
+	function init(wsengine="axis2", wsjars= getTempdirectory() & "/wsjars/", srcdir=getTempDirectory() & "/wsdlsrc",reload=true)  {
 		WSDLs = {};
 		jardir = wsjars;
 		wsdlsrc = srcdir;
@@ -17,6 +23,7 @@ component {
 				dm.materialize("org.apache.axis2:axis2-codegen:1.6.2",depdir);
 				dm.materialize("org.apache.axis2:axis2-jaxws:1.6.2",depdir);
 				dm.materialize("org.apache.axis2:axis2-adb-codegen:1.6.2",depdir);
+				dm.materialize("org.apache.axis2:axis2-xmlbeans:1.6.2",depdir);
 				dm.materialize("org.apache.ws.commons.axiom:axiom-impl:1.2.13",depdir);
 				dm.materialize("org.apache.axis2:axis2-java2wsdl:1.6.2",depdir);
 				wsengineObj = createObject("cfjarsoap.axis2.Axis2")
@@ -27,15 +34,29 @@ component {
 				wsengineObj = createObject("cfjarsoap.cxf.CXF")
 			break;
 		}
-		javaloader = new cfjarsoap.dependency.javatools.LibraryLoader(id="cfjarsoap-classloader", pathlist="#depdir#,#jardir#");
+		javaloader = new cfjarsoap.dependency.javatools.LibraryLoader(id="cfjarsoap-classloader-#wsengine#", pathlist="#depdir#,#jardir#", force=reload);
 		wsengineObj.init(javaloader,jardir,srcdir);
 		return this;
 	}
 
-	function addWSDL(required wsdl, package="", jar="", srcdir=wsdlsrc, addJavaSrcDir="", bindings="", boolean refresh=false)  {
+	/**
+	 * add a WSDL to be generated/loaded
+	 * @wsdl.hint WSDL URI
+	 * @endpoint.hint override endpoint URI
+	 * @package.hint override generated java package
+	 * @jar.hint where to store the generated jar, defaults to jardir
+	 * @srcdir.hint where to store the generated java, defaults to srcdir
+	 * @addJavaSrcDir.hint directory of java sources to add to jar
+	 * @bindings.hint bindings.xml for CXF
+	 * @refresh.hint force regeneration of WSDL jar
+	 **/
+	function addWSDL(required wsdl, endpoint="", package="", jar="", srcdir=wsdlsrc, addJavaSrcDir="", bindings="", boolean refresh=false)  {
 		wsengineObj.addWSDL(argumentCollection = arguments);
 	}
 
+	/**
+	 * returns a list of available services
+	 **/
 	function getServices()  {
 		if(isNull(services)) {
 			services = wsengineObj.getServices();
@@ -43,34 +64,41 @@ component {
 		return services;
 	}
 
+	/**
+	 * returns the webservices classloader
+	 * @reload.hint regenerates classes and returns new classloader
+	 **/
 	function getClassLoader(reload=false)  {
 		return wsengineObj.getClassloader(reload);
 	}
 
+	/**
+	 * returns the webservices classloader
+	 **/
 	function getWSEngine()  {
 		return wsengineObj;
 	}
 
+	/**
+	 * converts a POJO to a CFML Struct (with the POJO in _pojo)
+	 * @pojo.hint the POJO to convert
+	 **/
 	function pojo2struct(required pojo)  {
 		return wsengineObj.pojo2struct(pojo);
 	}
 
-   function onMissingMethod( missingMethodName, missingMethodArguments ) {
+	/**
+	 * OnMissingMethod used to call service
+	 * @pojo.serviceName the service
+	 * @pojo.serviceArguments the service arguments
+	 **/
+   function onMissingMethod( serviceName, serviceArguments ) {
    	var services = getServices();
-   	if(listFindNoCase(structKeyList(services),missingMethodName)) {
-   		var service = services[missingMethodName];
-   		var soap = getClassLoader().create(service.locator);
-   		var pojo = "";
-   		switch(listLen(structKeyList(service.arguments))) {
-   			case 1:
-	   			return wsengineObj.runOperation(missingMethodName,missingMethodArguments[1]);
-   			case 2:
-	   			return wsengineObj.runOperation(missingMethodName,missingMethodArguments[1],missingMethodArguments[2]);
-   			case 3:
-	   			return wsengineObj.runOperation(missingMethodName,missingMethodArguments[1],missingMethodArguments[2],missingMethodArguments[3]);
-   		}
+
+   	if(listFindNoCase(structKeyList(services),serviceName)) {
+		return wsengineObj.runOperation(serviceName,serviceArguments);
    	}
-   	throw(type="jarsoap.service.notfound",message="the service #missingMethodName# was not found. Available services:#structKeyList(services)#");
+   	throw(type="jarsoap.service.notfound",message="the service #serviceName# was not found. Available services:#structKeyList(services)#");
    }
 
 }

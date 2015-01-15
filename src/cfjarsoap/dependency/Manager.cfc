@@ -1,6 +1,6 @@
 component {
 
-	function init(localPath=getDirectoryFromPath(getTemplatePath()) & "/repo", repositories="default") {
+	function init(localPath=getDirectoryFromPath(getMetadata(this).path) & "/repo", repositories="default") {
 		localRepositoryPath = localPath;
 		remotes = [];
 		thisdir = getDirectoryFromPath(getMetadata(this).path);
@@ -14,7 +14,7 @@ component {
 		rawMaterialize("org.cfmlprojects:cfaether:zip:1.0.0","#thisdir#/aether",true);
 		rawMaterialize("org.cfmlprojects:cfdependency:jar:1.0.0","#thisdir#/aether/lib");
 		rawMaterialize("cfml:javatools:zip:1.0.0","#thisdir#/javatools",true);
-		javaloader = new javatools.LibraryLoader(pathlist=thisdir & "/aether/lib/", id="aether-classloader")
+		javaloader = new javatools.LibraryLoader(pathlist=thisdir & "/aether/lib/", id="aether-classloader");
 		aether = new aether.Aether(localPath=localPath, javaloader=javaloader);
 	}
 /*

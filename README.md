@@ -12,8 +12,8 @@ generally:
 
 ```javascript
 var thisdir = getDirectoryFromPath(getTemplatePath());
-var jardir = thisdir & "/wsjars";
-var srcdir = thisdir & "/wssrc";
+var jardir = thisdir & "/wsjars";  // where the generated jars are stored
+var srcdir = thisdir & "/wssrc";  // where generated source is stored, if you want to see it
 
 var cfsoap = new cfjarsoap.JarSoap("axis2",jardir,srcdir);
 
